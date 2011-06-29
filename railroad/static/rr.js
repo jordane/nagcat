@@ -187,7 +187,7 @@ function tickFormatter(val, axis) {
 
 // Format a label, passed to Flot
 function labelFormatter(label, series) {
-    return label.replace(/_/g, ' ');
+    return ('<input type="checkbox" name="' + label +'" class="valueLabel" checked>' + label + '</input>');
 }
 
 /******* GRAPH GENERATION/MANIPULTION *******/
@@ -234,6 +234,7 @@ function createGraph(element, path, callback, zoom) {
                                        });
                 } else {
                     data = formatGraph(element, data);
+                    ungraphed_data = {}
                     $(element).data('plot',
                                     $.plot($(element),
                                     data.data,
@@ -242,6 +243,31 @@ function createGraph(element, path, callback, zoom) {
                                     data.start);
                     $(element).data('end',
                                     data.end);
+                    $('.valueLabel').each(function () {
+                        if (ungraphed_data[$(this).attr('name')]) {
+                            $(this).prop('checked', null);
+                        }
+                    });
+                    $('.valueLabel').live('change', function () {
+                        for (var i=0; i< data.data.length; i++) {
+                            if (data.data[i]['label'] == $(this).attr('name')) {
+                                if ($(this).prop('checked') && ungraphed_data[$(this).attr('name')]) {
+                                    data.data[i].data = ungraphed_data[$(this).attr('name')];
+                                    ungraphed_data[$(this).attr('name')] = null;
+                                }
+                                else {
+                                    ungraphed_data[$(this).attr('name')] = data.data[i].data;
+                                    data.data[i].data = [[null,null]];
+                                }
+                                $(element).data('plot', $.plot($(element), data.data, data.options));
+                            }
+                        }
+                    $('.valueLabel').each(function () {
+                        if (ungraphed_data[$(this).attr('name')]) {
+                            $(this).prop('checked', null);
+                        }
+                    });
+                    });
                     if(data.options.yaxis.label) {
                         // if there isn't already a ylabel
                         if ($(element).siblings('.ylabel').length == 0) {
@@ -292,6 +318,7 @@ function createGraph(element, path, callback, zoom) {
 
 // Parse and setup graphs on the page
 function parseGraphs(index, element) {
+
 
     // Don't set up graphs already set up
     $(element).addClass('setup');
