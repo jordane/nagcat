@@ -187,7 +187,7 @@ function tickFormatter(val, axis) {
 
 // Format a label, passed to Flot
 function labelFormatter(label, series) {
-    return ('<input type="checkbox" name="' + label +'" class="valueLabel" checked>' + label + '</input>');
+    return ('<input type="button" name="' + label +'" class="removeLabel" value="Remove ' +  label + '"></input> <input type="button" name="' + label + '" class="addLabel" value="Add ' + label +'"></input>' );
 }
 
 /******* GRAPH GENERATION/MANIPULTION *******/
@@ -248,25 +248,27 @@ function createGraph(element, path, callback, zoom) {
                             $(this).prop('checked', null);
                         }
                     });
-                    $('.valueLabel').live('change', function () {
+                    $('.addLabel').live('click', function () {
                         for (var i=0; i< data.data.length; i++) {
                             if (data.data[i]['label'] == $(this).attr('name')) {
-                                if ($(this).prop('checked') && ungraphed_data[$(this).attr('name')]) {
+                                if (ungraphed_data[$(this).attr('name')]) {
                                     data.data[i].data = ungraphed_data[$(this).attr('name')];
                                     ungraphed_data[$(this).attr('name')] = null;
                                 }
-                                else {
+                                $(element).data('plot', $.plot($(element), data.data, data.options));
+                            }
+                        }
+                    });
+                    $('.removeLabel').live('click', function () {
+                        for (var i=0; i< data.data.length; i++) {
+                            if (data.data[i]['label'] == $(this).attr('name')) {
+                                if (!ungraphed_data[$(this).attr('name')]) {
                                     ungraphed_data[$(this).attr('name')] = data.data[i].data;
                                     data.data[i].data = [[null,null]];
                                 }
                                 $(element).data('plot', $.plot($(element), data.data, data.options));
                             }
                         }
-                    $('.valueLabel').each(function () {
-                        if (ungraphed_data[$(this).attr('name')]) {
-                            $(this).prop('checked', null);
-                        }
-                    });
                     });
                     if(data.options.yaxis.label) {
                         // if there isn't already a ylabel
